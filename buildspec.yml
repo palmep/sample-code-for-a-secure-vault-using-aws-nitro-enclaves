@@ -9,7 +9,7 @@ phases:
       - echo Build started on `date`
       - export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
       # Build parent image with BuildKit
-      - docker buildx bake -f docker-bake.hcl --set default.targets=parent
+      - docker buildx bake -f docker-bake.hcl parent
       # Build enclave image with Kaniko for reproducible PCR0
       - mkdir -p /tmp/enclave-output
       - >-
