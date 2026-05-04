@@ -8,6 +8,9 @@ phases:
       - export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
       - echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
       - echo "Commit $(git log -1 --format=%H)"
+      - echo "=== Building parent with BuildKit ==="
+      - docker buildx bake -f docker-bake.hcl parent
+      - echo "=== Building enclave with Kaniko ==="
       - mkdir -p /tmp/enclave-output
       - >-
         docker run --rm
