@@ -1,0 +1,30 @@
+version: 0.2
+phases:
+  install:
+    commands:
+      - sudo dnf install --releasever=latest -y aws-nitro-enclaves-cli aws-nitro-enclaves-cli-devel
+  build:
+    commands:
+      - export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
+      - echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
+      - echo "Commit $(git log -1 --format=%H)"
+      - docker buildx bake -f docker-bake.hcl --set default.targets=parent
+      - mkdir -p /tmp/enclave-output
+      - >-
+        docker run --rm
+        -v $(pwd)/enclave:/workspace
+        -v /tmp/enclave-output:/output
+        gcr.io/kaniko-project/executor:v1.23.2
+        --dockerfile /workspace/Dockerfile
+        --context /workspace
+        --reproducible
+        --no-push
+        --tarPath=/output/enclave.tar
+        --destination=enclave-vault:latest
+        --build-arg TARGETPLATFORM=aarch64-unknown-linux-musl
+        --build-arg SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}
+      - docker load -i /tmp/enclave-output/enclave.tar
+      - nitro-cli build-enclave --docker-uri enclave-vault:latest --output-file enclave-vault.eif > measurements.json
+      - cat measurements.json
+      - echo "=== PCR0 ==="
+      - jq -r '.Measurements.PCR0' measurements.json
