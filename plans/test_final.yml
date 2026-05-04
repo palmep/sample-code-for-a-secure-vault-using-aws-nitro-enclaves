@@ -8,7 +8,6 @@ phases:
       - export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
       - echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
       - echo "Commit $(git log -1 --format=%H)"
-      - docker buildx bake -f docker-bake.hcl --set default.targets=parent
       - mkdir -p /tmp/enclave-output
       - >-
         docker run --rm
